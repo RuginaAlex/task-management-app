@@ -3,6 +3,7 @@ package com.example.task_management.api;
 import com.example.task_management.model.User;
 import com.example.task_management.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,8 +22,9 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
@@ -32,8 +34,9 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.saveUser(user);
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        User createdUser = userService.saveUser(user);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -41,7 +44,8 @@ public class UserController {
         Optional<User> existingUser = userService.getUserById(id);
         if (existingUser.isPresent()) {
             user.setId(id);
-            return ResponseEntity.ok(userService.saveUser(user));
+            User updatedUser = userService.saveUser(user);
+            return ResponseEntity.ok(updatedUser);
         } else {
             return ResponseEntity.notFound().build();
         }
