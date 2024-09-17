@@ -1,5 +1,6 @@
 package com.example.task_management.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -29,14 +30,13 @@ public class User {
 
     @NotNull
     @Size(min = 6)
-    @Column(nullable = false)
     private String password;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // Relație One-to-Many cu TaskList
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference // Evită referința circulară
     private Set<TaskList> taskLists = new HashSet<>();
 
     // Constructori

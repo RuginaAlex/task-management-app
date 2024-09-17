@@ -1,8 +1,8 @@
 package com.example.task_management.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -17,32 +17,30 @@ public class TaskList {
     private Long id;
 
     @NotNull
-    @Size(min = 3, max = 100)
-    @Column(nullable = false)
     private String name;
 
-    // Relație Many-to-One cu User
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
+    @JsonBackReference // Evită referința circulară
     private User user;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // Relație One-to-Many cu Task
-    @OneToMany(mappedBy = "taskList", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "taskList", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Task> tasks = new HashSet<>();
 
-    // Constructori
-    public TaskList() {}
+    public TaskList() {
+        this.createdAt = LocalDateTime.now();  // Setăm createdAt în constructorul implicit
+    }
 
     public TaskList(String name, User user) {
         this.name = name;
         this.user = user;
-        this.createdAt = LocalDateTime.now(); // Setează data curentă la crearea obiectului
+        this.createdAt = LocalDateTime.now();  // Setăm createdAt și în constructorul cu parametri
     }
 
-    // Getteri și Setteri
+    // Getters și Setters
     public Long getId() {
         return id;
     }
@@ -67,14 +65,6 @@ public class TaskList {
         this.user = user;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public Set<Task> getTasks() {
         return tasks;
     }
@@ -83,27 +73,11 @@ public class TaskList {
         this.tasks = tasks;
     }
 
-    // Metode utile (toString, equals, hashCode)
-    @Override
-    public String toString() {
-        return "TaskList{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", user=" + user +
-                ", createdAt=" + createdAt +
-                '}';
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TaskList taskList = (TaskList) o;
-        return id.equals(taskList.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

@@ -1,7 +1,9 @@
 package com.example.task_management.api;
 
 import com.example.task_management.model.TaskList;
+import com.example.task_management.model.User;
 import com.example.task_management.service.TaskListService;
+import com.example.task_management.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +16,12 @@ import java.util.Optional;
 public class TaskListController {
 
     private final TaskListService taskListService;
+    private final UserService userService;
 
     @Autowired
-    public TaskListController(TaskListService taskListService) {
+    public TaskListController(TaskListService taskListService, UserService userService) {
         this.taskListService = taskListService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -32,8 +36,16 @@ public class TaskListController {
     }
 
     @PostMapping
-    public TaskList createTaskList(@RequestBody TaskList taskList) {
-        return taskListService.saveTaskList(taskList);
+    public ResponseEntity<TaskList> createTaskList(@RequestBody TaskList taskList) {
+        // Verifică dacă user-ul asociat există
+        Optional<User> user = userService.getUserById(taskList.getUser().getId());
+        if (user.isPresent()) {
+            taskList.setUser(user.get()); // Setează user-ul existent la taskList
+            TaskList savedTaskList = taskListService.saveTaskList(taskList);
+            return ResponseEntity.ok(savedTaskList);
+        } else {
+            return ResponseEntity.badRequest().body(null); // Returnează un răspuns Bad Request dacă user-ul nu există
+        }
     }
 
     @PutMapping("/{id}")
@@ -41,7 +53,15 @@ public class TaskListController {
         Optional<TaskList> existingTaskList = taskListService.getTaskListById(id);
         if (existingTaskList.isPresent()) {
             taskList.setId(id);
-            return ResponseEntity.ok(taskListService.saveTaskList(taskList));
+
+            // Verifică dacă user-ul asociat există
+            Optional<User> user = userService.getUserById(taskList.getUser().getId());
+            if (user.isPresent()) {
+                taskList.setUser(user.get()); // Setează user-ul existent la taskList
+                return ResponseEntity.ok(taskListService.saveTaskList(taskList));
+            } else {
+                return ResponseEntity.badRequest().body(null); // Returnează un răspuns Bad Request dacă user-ul nu există
+            }
         } else {
             return ResponseEntity.notFound().build();
         }
