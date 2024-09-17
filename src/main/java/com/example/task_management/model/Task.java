@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tasks")
@@ -17,46 +15,50 @@ public class Task {
     private Long id;
 
     @NotNull
-    @Size(min = 3, max = 255)
+    @Size(min = 1, max = 100)
     @Column(nullable = false)
     private String title;
 
-    @Size(max = 2000)
+    @Size(max = 500)
     private String description;
 
+    @NotNull
+    @Column(nullable = false)
+    private String status;  // Ar trebui să fie un enum (To Do, In Progress, Done), dar îl lăsăm String pentru simplificare
+
+    @NotNull
+    @Column(nullable = false)
+    private String priority;  // Ar trebui să fie un enum (Low, Medium, High), dar îl lăsăm String pentru simplificare
+
     @Column(name = "due_date")
-    private LocalDate dueDate;
+    private LocalDateTime dueDate;
 
-    @Column(name = "priority")
-    private Integer priority;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private Status status;
-
+    // Relații cu alte entități
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "task_list_id")
+    @JoinColumn(name = "task_list_id", nullable = false)
     private TaskList taskList;
 
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Attachment> attachments = new HashSet<>();
-
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Comment> comments = new HashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     // Constructori
-    public Task() {}
+    public Task() {
+        this.createdAt = LocalDateTime.now();  // Setează automat data creării la instanțiere
+    }
 
-    public Task(String title, String description, LocalDate dueDate, Integer priority, Status status) {
+    public Task(String title, String description, String status, String priority, LocalDateTime dueDate, TaskList taskList, User user) {
         this.title = title;
         this.description = description;
-        this.dueDate = dueDate;
-        this.priority = priority;
         this.status = status;
+        this.priority = priority;
+        this.dueDate = dueDate;
+        this.createdAt = LocalDateTime.now();  // Setează automat data creării
+        this.taskList = taskList;
+        this.user = user;
     }
 
     // Getteri și Setteri
@@ -84,36 +86,36 @@ public class Task {
         this.description = description;
     }
 
-    public LocalDate getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDate dueDate) {
-        this.dueDate = dueDate;
-    }
-
-    public Integer getPriority() {
-        return priority;
-    }
-
-    public void setPriority(Integer priority) {
-        this.priority = priority;
-    }
-
-    public Status getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public User getUser() {
-        return user;
+    public String getPriority() {
+        return priority;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
+    public LocalDateTime getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDateTime dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public TaskList getTaskList() {
@@ -124,20 +126,12 @@ public class Task {
         this.taskList = taskList;
     }
 
-    public Set<Attachment> getAttachments() {
-        return attachments;
+    public User getUser() {
+        return user;
     }
 
-    public void setAttachments(Set<Attachment> attachments) {
-        this.attachments = attachments;
-    }
-
-    public Set<Comment> getComments() {
-        return comments;
-    }
-
-    public void setComments(Set<Comment> comments) {
-        this.comments = comments;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     // Metode utile (toString, equals, hashCode)
@@ -146,8 +140,9 @@ public class Task {
         return "Task{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
-                ", dueDate=" + dueDate +
-                ", status=" + status +
+                ", status='" + status + '\'' +
+                ", priority='" + priority + '\'' +
+                ", createdAt=" + createdAt +
                 '}';
     }
 
@@ -162,12 +157,5 @@ public class Task {
     @Override
     public int hashCode() {
         return id.hashCode();
-    }
-
-    // Enum pentru Status
-    public enum Status {
-        PENDING,
-        IN_PROGRESS,
-        COMPLETED
     }
 }

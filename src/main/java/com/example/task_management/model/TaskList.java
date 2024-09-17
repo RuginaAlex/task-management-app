@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,15 +17,20 @@ public class TaskList {
     private Long id;
 
     @NotNull
-    @Size(min = 3, max = 255)
+    @Size(min = 3, max = 100)
     @Column(nullable = false)
     private String name;
 
+    // Relație Many-to-One cu User
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "taskList", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    // Relație One-to-Many cu Task
+    @OneToMany(mappedBy = "taskList", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Task> tasks = new HashSet<>();
 
     // Constructori
@@ -33,6 +39,7 @@ public class TaskList {
     public TaskList(String name, User user) {
         this.name = name;
         this.user = user;
+        this.createdAt = LocalDateTime.now(); // Setează data curentă la crearea obiectului
     }
 
     // Getteri și Setteri
@@ -60,6 +67,14 @@ public class TaskList {
         this.user = user;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public Set<Task> getTasks() {
         return tasks;
     }
@@ -74,7 +89,8 @@ public class TaskList {
         return "TaskList{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", user=" + (user != null ? user.getUsername() : "null") +
+                ", user=" + user +
+                ", createdAt=" + createdAt +
                 '}';
     }
 

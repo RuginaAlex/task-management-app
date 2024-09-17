@@ -2,6 +2,7 @@ package com.example.task_management.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "attachments")
@@ -12,29 +13,34 @@ public class Attachment {
     private Long id;
 
     @NotNull
-    @Column(nullable = false)
+    @Column(name = "file_name", nullable = false)
     private String fileName;
 
     @NotNull
-    @Column(nullable = false)
-    private String fileType;
-
-    @NotNull
-    @Column(nullable = false)
+    @Column(name = "file_url", nullable = false)
     private String fileUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "task_id")
+    @Column(name = "file_type")
+    private String fileType;
+
+    @Column(name = "uploaded_at", nullable = false, updatable = false)
+    private LocalDateTime uploadedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "task_id", nullable = false)
     private Task task;
 
     // Constructori
-    public Attachment() {}
+    public Attachment() {
+        this.uploadedAt = LocalDateTime.now(); // Inițializează automat la momentul creării
+    }
 
-    public Attachment(String fileName, String fileType, String fileUrl, Task task) {
+    public Attachment(String fileName, String fileUrl, String fileType, Task task) {
         this.fileName = fileName;
-        this.fileType = fileType;
         this.fileUrl = fileUrl;
+        this.fileType = fileType;
         this.task = task;
+        this.uploadedAt = LocalDateTime.now();
     }
 
     // Getteri și Setteri
@@ -54,6 +60,14 @@ public class Attachment {
         this.fileName = fileName;
     }
 
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
+    }
+
     public String getFileType() {
         return fileType;
     }
@@ -62,12 +76,12 @@ public class Attachment {
         this.fileType = fileType;
     }
 
-    public String getFileUrl() {
-        return fileUrl;
+    public LocalDateTime getUploadedAt() {
+        return uploadedAt;
     }
 
-    public void setFileUrl(String fileUrl) {
-        this.fileUrl = fileUrl;
+    public void setUploadedAt(LocalDateTime uploadedAt) {
+        this.uploadedAt = uploadedAt;
     }
 
     public Task getTask() {
@@ -84,8 +98,10 @@ public class Attachment {
         return "Attachment{" +
                 "id=" + id +
                 ", fileName='" + fileName + '\'' +
-                ", fileType='" + fileType + '\'' +
                 ", fileUrl='" + fileUrl + '\'' +
+                ", fileType='" + fileType + '\'' +
+                ", uploadedAt=" + uploadedAt +
+                ", task=" + task.getId() + // Pentru o reprezentare mai simplă
                 '}';
     }
 

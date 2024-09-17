@@ -2,8 +2,6 @@ package com.example.task_management.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,22 +13,28 @@ public class Comment {
     private Long id;
 
     @NotNull
-    @Size(min = 1, max = 2000)
     @Column(nullable = false)
     private String content;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "task_id")
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "task_id", nullable = false)
     private Task task;
 
     // Constructori
-    public Comment() {}
+    public Comment() {
+        this.createdAt = LocalDateTime.now(); // Inițializează automat la momentul creării
+    }
 
-    public Comment(String content, Task task) {
+    public Comment(String content, User user, Task task) {
         this.content = content;
+        this.user = user;
         this.task = task;
         this.createdAt = LocalDateTime.now();
     }
@@ -60,6 +64,14 @@ public class Comment {
         this.createdAt = createdAt;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     public Task getTask() {
         return task;
     }
@@ -75,6 +87,8 @@ public class Comment {
                 "id=" + id +
                 ", content='" + content + '\'' +
                 ", createdAt=" + createdAt +
+                ", user=" + user.getUsername() + // Pentru o reprezentare mai simplă
+                ", task=" + task.getId() + // Pentru o reprezentare mai simplă
                 '}';
     }
 
